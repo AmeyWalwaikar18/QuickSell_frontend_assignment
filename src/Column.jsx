@@ -20,6 +20,10 @@ const Column = ({ title, group, tickets }) => {
   console.log("printing title: ", title);
   console.log("printing tickets: ", tickets);
 
+  if(title === "User not found"){
+    return null;
+  }
+
   let term;
   let logo;
 
@@ -65,38 +69,42 @@ const Column = ({ title, group, tickets }) => {
   if(title == "Cancelled"){
     logo = CancelledLogo;
   }
+  
+  const filteredTickets = tickets.filter(
+    (ticket) => ticket.status !== "Done" && ticket.status !== "Cancelled"
+  );
 
   // Count the number of tickets
-  let cardCount = tickets.length;
+  let cardCount = filteredTickets.length;
 
   return (
     <div className="column">
-      <div className="column-headers">
-        <div className="left-main">
-          {/* Display the logo */}
-          {logo && <img src={logo} alt={`${term} Priority`} />}
+    <div className="column-headers">
+      <div className="left-main">
+        {/* Display the logo */}
+        {logo && <img src={logo} alt={`${term} Priority`} />}
 
-          {/* Display title, term, and card count */}
-          <h2>
-            {title} {term} {title == "Done" || title == "Cancelled" ? cardCount = 0 : cardCount}
-          </h2>
-        </div>
-
-        <div className="right-main">
-          {/* + */}
-          <img src={AddLogo} alt="" />
-
-          {/* ... */}
-          <img src={threeDotLogo} alt="" />
-        </div>
+        {/* Display title, term, and card count */}
+        <h2>
+          {title} {term} ({cardCount})
+        </h2>
       </div>
 
-      {/* Display each card */}
-      {title !== "Done" && title != "Cancelled" && tickets.map((ticket) => (
-        <Card key={ticket.id} ticket={ticket} />
-      ))}
+      <div className="right-main">
+        {/* Add and menu icons */}
+        <img src={AddLogo} alt="Add new ticket" />
+        <img src={threeDotLogo} alt="More options" />
+      </div>
     </div>
-  );
+
+    {/* Display each filtered card */}
+    {title !== "Done" && title !== "Cancelled" &&
+      filteredTickets.map((ticket) => (
+        <Card key={ticket.id} ticket={ticket} />
+      ))
+    }
+  </div>
+);
 };
 
 export default Column;

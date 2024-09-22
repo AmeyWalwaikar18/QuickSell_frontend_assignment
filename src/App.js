@@ -79,14 +79,17 @@ function App() {
   const sortTickets = (tickets, sortBy) => {
     return tickets.sort((a, b) => {
       if (sortBy === "priority") {
-        return b.priority - a.priority;
+        return (b.priority || 0) - (a.priority || 0);  // Fallback to 0 if priority is missing
       }
       if (sortBy === "title") {
-        return a.title.localeCompare(b.title);
+        const titleA = a.title || ""; // Fallback to empty string if title is undefined
+        const titleB = b.title || ""; // Same here
+        return titleA.localeCompare(titleB);
       }
       return 0;
     });
   };
+  
 
   // this is basically an object of multiple arrays
   const groupedTickets = groupTickets(tickets, groupBy);
