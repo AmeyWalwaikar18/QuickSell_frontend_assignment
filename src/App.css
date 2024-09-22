@@ -99,7 +99,8 @@ select {
 .left-main, .right-main {
   gap: 12px;
   display: flex;
-  align-items: center;
+  align-items: baseline;
+  /* align-items: center; */
 }
 
 .ticket-number {

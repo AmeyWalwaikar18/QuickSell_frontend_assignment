@@ -11,6 +11,10 @@ import threeDotLogo from "./icons_FEtask/3 dot menu.svg";
 import todo from "./icons_FEtask/To-do.svg";
 import inprogress from "./icons_FEtask/in-progress.svg";
 import backlog from "./icons_FEtask/Backlog.svg";
+import DoneLogo from "./icons_FEtask/Done.svg";
+import CancelledLogo from "./icons_FEtask/Cancelled.svg";
+
+
 
 const Column = ({ title, group, tickets }) => {
   console.log("printing title: ", title);
@@ -53,8 +57,17 @@ const Column = ({ title, group, tickets }) => {
     logo = backlog;
   }
 
+  if(title == "Done"){
+    logo = DoneLogo;
+    // term = 0;
+  }
+
+  if(title == "Cancelled"){
+    logo = CancelledLogo;
+  }
+
   // Count the number of tickets
-  const cardCount = tickets.length;
+  let cardCount = tickets.length;
 
   return (
     <div className="column">
@@ -65,7 +78,7 @@ const Column = ({ title, group, tickets }) => {
 
           {/* Display title, term, and card count */}
           <h2>
-            {title} {term} {cardCount}
+            {title} {term} {title == "Done" || title == "Cancelled" ? cardCount = 0 : cardCount}
           </h2>
         </div>
 
@@ -79,7 +92,7 @@ const Column = ({ title, group, tickets }) => {
       </div>
 
       {/* Display each card */}
-      {tickets.map((ticket) => (
+      {title !== "Done" && title != "Cancelled" && tickets.map((ticket) => (
         <Card key={ticket.id} ticket={ticket} />
       ))}
     </div>
