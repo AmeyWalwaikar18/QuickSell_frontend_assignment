@@ -5,62 +5,93 @@ import Header from "./Header";
 import Column from "./Column";
 
 function App() {
-  const [tickets, setTickets] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [groupBy, setGroupBy] = useState("status");
-  const [sortBy, setSortBy] = useState("priority");
+  const [tickets, setTickets] = useState(() => {
+    const savedTickets = localStorage.getItem("tickets");
+    return savedTickets ? JSON.parse(savedTickets) : [];
+  });
+
+  const [users, setUsers] = useState(() => {
+    const savedUsers = localStorage.getItem("users");
+    return savedUsers ? JSON.parse(savedUsers) : [];
+  });
+
+  const [groupBy, setGroupBy] = useState(() => {
+    // Load groupBy value from localStorage, default to 'status'
+    return localStorage.getItem("groupBy") || "status";
+  });
+
+  const [sortBy, setSortBy] = useState(() => {
+    // Load sortBy value from localStorage, default to 'priority'
+    return localStorage.getItem("sortBy") || "priority";
+  });
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("https://api.quicksell.co/v1/internal/frontend-assignment")
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("showing data:", data);
-        console.log("showing only tickets: ", data.tickets);
-        console.log("showing only users: ", data.users);
-        const obj1 = {
-          status: "Done",
-          // priority: 4,
-        };
+    if (!tickets.length || !users.length) {
+      fetch("https://api.quicksell.co/v1/internal/frontend-assignment")
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("showing data:", data);
+          console.log("showing only tickets: ", data.tickets);
+          console.log("showing only users: ", data.users);
 
-        const obj2 = {
-          status: "Cancelled",
-          // priority: 4,
-        };
+          const obj1 = { status: "Done" };
+          const obj2 = { status: "Cancelled" };
+          data.tickets.push(obj1);
+          data.tickets.push(obj2);
 
-        data.tickets.push(obj1);
-        data.tickets.push(obj2);
+          setTickets(data.tickets);
+          setUsers(data.users);
 
+          localStorage.setItem("tickets", JSON.stringify(data.tickets));
+          localStorage.setItem("users", JSON.stringify(data.users));
 
-        setTickets(data.tickets);
-        setUsers(data.users);
-        setLoading(false);
-        // console.log("showing tickets: ",tickets);
-        // console.log("showing users: ",users);
-      })
-      .catch((error) => {
-        console.log("Error fetching data: ", error);
-        setLoading(false);
-      });
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.log("Error fetching data: ", error);
+          setLoading(false);
+        });
+    } else {
+      setLoading(false);
+    }
   }, []);
 
-  console.log("showing tickets: ", tickets);
-  console.log("showing users: ", users);
+  // Save tickets to localStorage when tickets state changes
+  useEffect(() => {
+    if (tickets.length) {
+      localStorage.setItem("tickets", JSON.stringify(tickets));
+    }
+  }, [tickets]);
 
-  // we also want the user name based on the user_id
+  // Save users to localStorage when users state changes
+  useEffect(() => {
+    if (users.length) {
+      localStorage.setItem("users", JSON.stringify(users));
+    }
+  }, [users]);
+
+  // Save groupBy to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem("groupBy", groupBy);
+  }, [groupBy]);
+
+  // Save sortBy to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem("sortBy", sortBy);
+  }, [sortBy]);
+
   const getUserName = (userId) => {
     const user = users.find((user) => user.id === userId);
     return user ? user.name : "User not found";
   };
 
-  // we also want to group tickets on the basis of status, user, priority
   const groupTickets = (tickets, groupBy) => {
     const grouped = {};
-    // we will now iterate over the tickets one by one
     tickets.forEach((ticket) => {
       let groupKey;
       if (groupBy === "user") {
-        // we will now group on the basis of users
         groupKey = getUserName(ticket.userId);
       } else {
         groupKey = ticket[groupBy] || "No " + groupBy;
@@ -75,23 +106,20 @@ function App() {
     return grouped;
   };
 
-  // we allso want to sort tickets by priority or title
   const sortTickets = (tickets, sortBy) => {
     return tickets.sort((a, b) => {
       if (sortBy === "priority") {
-        return (b.priority || 0) - (a.priority || 0);  // Fallback to 0 if priority is missing
+        return (b.priority || 0) - (a.priority || 0);
       }
       if (sortBy === "title") {
-        const titleA = a.title || ""; // Fallback to empty string if title is undefined
-        const titleB = b.title || ""; // Same here
+        const titleA = a.title || "";
+        const titleB = b.title || "";
         return titleA.localeCompare(titleB);
       }
       return 0;
     });
   };
-  
 
-  // this is basically an object of multiple arrays
   const groupedTickets = groupTickets(tickets, groupBy);
   Object.keys(groupedTickets).forEach((key) => {
     groupedTickets[key] = sortTickets(groupedTickets[key], sortBy);
@@ -101,13 +129,7 @@ function App() {
 
   return (
     <div className="App">
-      <Header setGroupBy={setGroupBy} setSortBy={setSortBy}>
-        {/* <div className='kanban-board'>
-        {Object.keys(groupedTickets).map((group) => (
-          <Column key={group} title={group} tickets={groupedTickets[group]} />
-        ))}
-      </div> */}
-      </Header>
+      <Header setGroupBy={setGroupBy} setSortBy={setSortBy} />
       <div className="kanban-board">
         {Object.keys(groupedTickets).map((group) => (
           <Column
